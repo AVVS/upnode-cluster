@@ -1,0 +1,19 @@
+{
+  "name": "upnode-cluster",
+  "version": "0.1.0",
+  "description": "upnode cluster",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AVVS/upnode-cluster.git"
+  },
+  "author": "Vitaly Aminev <v@aminev.me>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AVVS/upnode-cluster/issues"
+  },
+  "homepage": "https://github.com/AVVS/upnode-cluster#readme"
+}
