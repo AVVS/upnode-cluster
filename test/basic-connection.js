@@ -1,10 +1,11 @@
-/* global describe, it */
+/* global describe, it, after */
 
 'use strict';
 
 var expect = require('expect.js');
 var _ = require('lodash');
 var Redis = require('ioredis');
+var async = require('neo-async');
 
 describe('basic-connection', function () {
 
@@ -83,6 +84,12 @@ describe('basic-connection', function () {
         expect(this.server.server._clients).to.have.length(2);
         expect(this.node.server._clients).to.have.length(1);
         expect(_.keys(this.peer._peers)).to.have.length(2);
+    });
+
+    after(function (done) {
+        async.each([this.node, this.peer, this.server], function (q, next) {
+            q.close(next);
+        }, done);
     });
 
 });
