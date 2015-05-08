@@ -1,0 +1,4 @@
+<testsuite name="Mocha Tests" tests="2" failures="0" errors="0" skipped="0" timestamp="Fri, 08 May 2015 00:43:54 GMT" time="0.018">
+<testcase classname="basic-connection" name="is able to bootstrap server" time="0.005"/>
+<testcase classname="basic-connection" name="is able to connect to server" time="0.01"/>
+</testsuite>

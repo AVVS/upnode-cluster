@@ -4,7 +4,7 @@
   "description": "upnode cluster",
   "main": "./lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "multi='list=- xunit=test-report.xml' ./node_modules/.bin/mocha -R mocha-multi"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,17 @@
   "bugs": {
     "url": "https://github.com/AVVS/upnode-cluster/issues"
   },
-  "homepage": "https://github.com/AVVS/upnode-cluster#readme"
+  "homepage": "https://github.com/AVVS/upnode-cluster#readme",
+  "dependencies": {
+    "arklogger": "^1.4.1",
+    "dnode": "^1.2.0",
+    "ioredis": "^1.2.1",
+    "lodash": "^3.8.0",
+    "upnode": "^0.4.3"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^2.2.4",
+    "mocha-multi": "^0.7.1"
+  }
 }
