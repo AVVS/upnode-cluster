@@ -1,4 +1,13 @@
-<testsuite name="Mocha Tests" tests="2" failures="0" errors="0" skipped="0" timestamp="Fri, 08 May 2015 00:43:54 GMT" time="0.018">
+<testsuite name="Mocha Tests" tests="11" failures="0" errors="0" skipped="0" timestamp="Fri, 08 May 2015 03:23:10 GMT" time="1.051">
 <testcase classname="basic-connection" name="is able to bootstrap server" time="0.005"/>
-<testcase classname="basic-connection" name="is able to connect to server" time="0.01"/>
+<testcase classname="basic-connection" name="is able to connect to server" time="0.011"/>
+<testcase classname="basic-connection" name="is able to close server" time="0"/>
+<testcase classname="basic-connection" name="is able to close peer connection" time="0"/>
+<testcase classname="basic-connection" name="able to setup server node" time="0.004"/>
+<testcase classname="basic-connection" name="able to setup peer node" time="0"/>
+<testcase classname="basic-connection" name="some time passes by..." time="0.501"/>
+<testcase classname="basic-connection" name="peer must be connected to server" time="0.006"/>
+<testcase classname="basic-connection" name="launch multi-node" time="0.002"/>
+<testcase classname="basic-connection" name="some time passes by" time="0.5"/>
+<testcase classname="basic-connection" name="expect multi-node to be connected to other servers" time="0.007"/>
 </testsuite>

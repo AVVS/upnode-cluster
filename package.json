@@ -18,6 +18,7 @@
   "homepage": "https://github.com/AVVS/upnode-cluster#readme",
   "dependencies": {
     "arklogger": "^1.4.1",
+    "distributed-callback-queue": "^2.0.1",
     "dnode": "^1.2.0",
     "ioredis": "^1.2.1",
     "lodash": "^3.8.0",
