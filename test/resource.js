@@ -8,6 +8,7 @@ var _ = require('lodash');
 var async = require('neo-async');
 var Errors = require('node-common-errors');
 var Promise = require('bluebird');
+var inherits = require('util').inherits;
 
 var TestResource = {
 
@@ -29,8 +30,8 @@ var TestResource = {
 
         create: function (resourceId, args, next) {
             var resource = this._cache.get(resourceId);
+            var promise = Promise.bind(this);
 
-            var promise;
             if (!resource) {
                 resource = {
                     id: resourceId,
@@ -47,13 +48,16 @@ var TestResource = {
                     }
                 };
 
-                this._cache.set(resourceId, resource);
-                promise = this.get(resourceId);
+                promise = promise.then(function () {
+                    return this.cache(resourceId, resource);
+                });
             } else {
-                promise = this.update(resource, args);
+                promise = promise.then(function () {
+                    return this.update(resource, args);
+                });
             }
 
-            return promise.nodeify(next || _.noop);
+            return promise.return(resourceId).then(this.get).nodeify(next || _.noop);
         },
 
         update: function (resource, args) {
@@ -88,16 +92,11 @@ var TestResource = {
             return Promise.resolve(true).nodeify(next || _.noop);
         },
 
-        deserialize: function (resourceId, resourceData, next) {
-            return this.create(resourceId, resourceData).nodeify(next || _.noop);
+        deserialize: function (resourceId, args, next) {
+            return this.create(resourceId, args, next);
         },
 
-        serialize: function (resourceId) {
-            var resource = this._cache.peek(resourceId);
-            if (!resource) {
-                return false;
-            }
-
+        serialize: function (resource) {
             return resource.args;
         }
 
@@ -210,9 +209,88 @@ describe('resource', function () {
             .nodeify(done);
     });
 
+    it('should be able to start application that implement scavenge resources', function (done) {
+        function Scavenger() {
+            Node.apply(this, arguments);
+        }
+        inherits(Scavenger, Node);
+
+        /**
+         * Scavenges resources from a given peer
+         * @param {Object} peer
+         */
+        Scavenger.prototype._scavengeResources = function (peer) {
+            console.log('scavenge resource on node %s called', peer.id);
+
+            var peerId = peer.id;
+            var nodeResources = this.resourceKey(this._resourceChannel, peerId, 'TestResource');
+            var redis = this._redis;
+            var self = this;
+
+            function traverseExistingResources() {
+                return redis
+                    .spop(nodeResources)
+                    .then(function (resourceId) {
+                        if (!resourceId) {
+                            throw new Errors.NotFound();
+                        }
+
+                        var key = self.resourceKey(nodeResources, resourceId);
+                        return redis.hgetall(key).then(function (resourceDetails) {
+                            if (!resourceDetails) {
+                                return traverseExistingResources();
+                            }
+
+                            return self.acquireResource(resourceId, 'TestResource', { create: resourceDetails, get: {} });
+                        });
+                    })
+                    .then(traverseExistingResources)
+                    .catch(Errors.NotFound, function () {
+                        // done traversing
+                        return;
+                    });
+            }
+
+            return traverseExistingResources();
+        };
+
+        var scavenger = new Scavenger({
+            redis: new Redis(),
+            pubsubChannel: '{upnode-cluster}',
+            cluster: 'upnode-cluster-ark',
+            server: {
+                port: 8000 + nodes.length,
+                host: 'localhost'
+            },
+            resources: resources,
+            peer: true
+        }, done);
+
+        nodes.push(scavenger);
+    });
+
+    it('some time passes by so the node can connect', function (done) {
+        setTimeout(done, 1500);
+    });
+
     it('should be able to close application gracefully', function (done) {
         var node = nodes[0];
         node.close(done);
+    });
+
+    it('1000 ms passes by...', function (done) {
+        setTimeout(done, 1000);
+    });
+
+    it('scavenger node should\'ve acquired resource from node 0', function (done) {
+        var node = nodes[3];
+        var args = { vitaly: 'aminev', ark: '.com' };
+
+        node.invoke('test', 'TestResource', args)
+            .then(function (response) {
+                expect(response).to.eql({ increment: 2 });
+            })
+            .nodeify(done);
     });
 
     after(function (done) {
