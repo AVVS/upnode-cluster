@@ -54,7 +54,7 @@ describe('rpc', function () {
     it('is able to create resource if it is not found', function (done) {
         var node = nodes[0];
 
-        node.acquireResource('email@ark.com', 'credentials-email', [], function (err, response) {
+        node.acquireResource('email@ark.com', 'credentials-email', { create: [], get: [] }, function (err, response) {
             expect(err).to.be.an(Errors.Common);
             expect(response).to.be(undefined);
             done();
