@@ -19,7 +19,7 @@ var TestResource = {
                 resource.dispose();
             },
 
-            maxAge: 30000 // 30 sec
+            maxAge: 3000 // 3 sec
 
         }
 
@@ -39,9 +39,10 @@ var TestResource = {
                     },
                     intervalsTicked: 0,
                     interval: setInterval(function () {
-                        resource.intervalsTicked += args.increment;
+                        resource.intervalsTicked += resource.args.increment;
                     }, 1000),
                     dispose: function () {
+                        console.log('resource dispose called on %s', resourceId);
                         clearInterval(this.interval);
                     }
                 };
@@ -69,8 +70,8 @@ var TestResource = {
 
             return Promise.resolve(resource).then(function (resource) {
                 console.log('beep boop %s. Passed args:', resource.id, args);
-                return resource;
-            }).nodeify(next);
+                return resource.args;
+            }).nodeify(next || _.noop);
         },
 
         get: function (resourceId, args, next) {
@@ -82,13 +83,13 @@ var TestResource = {
             return Promise.resolve(resource.intervalsTicked).nodeify(next || _.noop);
         },
 
-        close: function (resourceId, next) {
-            this._cache.del(resourceId);
-            return Promise.resolve(true).nodeify(next);
+        close: function (next) {
+            this._cache.reset();
+            return Promise.resolve(true).nodeify(next || _.noop);
         },
 
         deserialize: function (resourceId, resourceData, next) {
-            return this.create(resourceId, resourceData).nodeify(next);
+            return this.create(resourceId, resourceData).nodeify(next || _.noop);
         },
 
         serialize: function (resourceId) {
@@ -154,6 +155,64 @@ describe('resource', function () {
                 expect(resource).to.eql(0);
             })
             .nodeify(done);
+    });
+
+    it('some time passes by', function (done) {
+        setTimeout(done, 1500);
+    });
+
+    it('is able to get created resource from another peer', function (done) {
+        var node = nodes[1];
+        var args = { vitaly: 'aminev', ark: '.com' };
+
+        node.acquireResource('test', 'TestResource', args)
+            .then(function (resource) {
+                expect(resource).to.eql(2);
+            })
+            .nodeify(done);
+    });
+
+    it('some time passes by...', function (done) {
+        this.timeout(4000);
+        setTimeout(done, 3000);
+    });
+
+    it('resource had been evicted', function (done) {
+        var node = nodes[0];
+        var args = { vitaly: 'aminev', ark: '.com' };
+
+        node.acquireResource('test', 'TestResource', args)
+            .then(function (resource) {
+                expect(resource).to.eql(0);
+            })
+            .nodeify(done);
+    });
+
+    it('should not be able to invoke resource from a remote machine', function (done) {
+        var node = nodes[1];
+        var args = { vitaly: 'aminev', ark: '.com' };
+
+        node.invoke('test', 'TestResource', args)
+            .catch(function (err) {
+                expect(err).to.be.a(Errors.Uninitialized);
+            })
+            .nodeify(done);
+    });
+
+    it('should be able to perform request redirect', function (done) {
+        var node = nodes[1];
+        var args = { vitaly: 'aminev', ark: '.com' };
+
+        node.redirectRequest('localhost:8000', 'test', 'TestResource', args)
+            .then(function (response) {
+                expect(response).to.eql({ increment: 2 });
+            })
+            .nodeify(done);
+    });
+
+    it('should be able to close application gracefully', function (done) {
+        var node = nodes[0];
+        node.close(done);
     });
 
     after(function (done) {
