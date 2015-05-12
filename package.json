@@ -1,8 +1,8 @@
 {
   "name": "upnode-cluster",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "upnode cluster",
-  "main": "./lib/index.js",
+  "main": "./lib/node.js",
   "scripts": {
     "test": "BLUEBIRD_DEBUG=1 multi='list=- xunit=test-report.xml' ./node_modules/.bin/mocha -R mocha-multi"
   },
